@@ -1,3 +1,4 @@
+const JWT = require('../lib/jwt')
 const TokenModel = require('../models/token')
 const Server = require('../lib/server')
 
@@ -5,6 +6,7 @@ class PaymentPointerController {
   constructor (deps) {
     this.tokens = deps(TokenModel)
     this.server = deps(Server)
+    this.jwt = deps(JWT)
   }
 
   async init (router) {
@@ -31,7 +33,13 @@ class PaymentPointerController {
 
       const token = await this.tokens.get(ctx.params.token)
       if (!token) {
-        return ctx.throw(404, 'Token not found')
+        const tokenInfo = this.jwt.verify({ token })
+        if (tokenInfo) {
+          tokenInfo.token = token
+          await this.tokens.create(tokenInfo)
+        } else {
+          ctx.throw(404, 'Token not found')
+        }
       }
 
       const { destinationAccount, sharedSecret } =
