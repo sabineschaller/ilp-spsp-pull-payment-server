@@ -31,9 +31,12 @@ class PaymentPointerController {
         return ctx.throw(404)
       }
 
-      const token = await this.tokens.get(ctx.params.token)
-      if (!token) {
-        const tokenInfo = this.jwt.verify({ token })
+      const token = ctx.params.token
+      let tokenInfo
+      try{
+        tokenInfo = await this.tokens.get(token)
+      } catch (e) {
+        tokenInfo = this.jwt.verify({ token })
         if (tokenInfo) {
           tokenInfo.token = token
           await this.tokens.create(tokenInfo)
@@ -50,9 +53,9 @@ class PaymentPointerController {
         shared_secret: sharedSecret.toString('base64'),
         pull: {
           balance: {
-            total: String(token.balanceTotal),
-            interval: String(token.balanceInterval),
-            available: String(token.balanceAvailable)
+            total: String(tokenInfo.balanceTotal),
+            interval: String(tokenInfo.balanceInterval),
+            available: String(tokenInfo.balanceAvailable)
           }
         }
       }
