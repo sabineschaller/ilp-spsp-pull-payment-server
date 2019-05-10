@@ -4,40 +4,45 @@
 - [Usage](#usage)
 - [Environment Variables](#environment-variables)
 - [API](#api)
-  - [Create a pull payment token](#create-a-pull-payment-token)
-  - [Query a pull payment token](#query-a-pull-payment-token)
+  - [Create a pull pointer](#create-a-pull-pointer)
+  - [Query a pull pointer](#query-a-pull-pointer)
   - [Webhooks](#webhooks)
 
 ## Usage
+
+Make sure you have a running instance of **moneyd**. 
 
 Start the server
 ```sh
 SPSP_LOCALTUNNEL=true SPSP_LOCALTUNNEL_SUBDOMAIN=mysubdomain npm start
 ```
-Online creation of a pull payment token (information about the query parameters are in section [Request](###Request))
+Online creation of a pull pointer (information about the query parameters are in section [Request](###Request))
 
 ```http
-http POST mysubdomain.localtunnel.me amount=100 interval=P0Y0M0DT0H1M cycles=10 cap=false assetCode=XRP assetScale=6 Authorization:"Bearer test" 
+http POST mysubdomain.localtunnel.me amount=100 interval=P0Y0M0DT0H1M cycles=10 cap=false assetCode=XRP assetScale=6 Authorization:"Bearer test"
 HTTP/1.1 200 OK
 Connection: keep-alive
-Content-Length: 333
+Content-Length: 78
 Content-Type: application/json; charset=utf-8
-Date: Tue, 12 Feb 2019 19:33:45 GMT
+Date: Thu, 09 May 2019 16:56:34 GMT
 Server: nginx/1.10.1
 
 {
-    "pointer": "$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ.qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44"
+    "pointer": "$mysubdomain.localtunnel.me/484f126f-0c22-4052-9c9d-7af70500360a"
 }
 ```
-Query the token
+Query the pull pointer
 ```sh
-ilp-spsp query -p '$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ.qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44'
+ilp-spsp query -p '$mysubdomain.localtunnel.me/484f126f-0c22-4052-9c9d-7af70500360a'
 {
-  "destinationAccount": "private.moneyd.local.BWHJ-a8wR_pvtns2kZGPl2mZ9oMnhjgCkg0L38zIs6E.aaB89gkDgV22aG54_b8BVAua~eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9~eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ~qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44",
-  "sharedSecret": "/jIo5GsubZObjhf/41Y+il3+jJXsTrQfWG6EDOc8d80=",
-  "balance": {
-    "interval": "0",
-    "total": "0"
+  "destinationAccount": "private.moneyd.local.BFTRSlyMxz_62Ia7N58b83de5730op6sJKtWfj-58Tg.MnTMFWKMbSVZH9KCK2cf7N3X~484f126f-0c22-4052-9c9d-7af70500360a",
+  "sharedSecret": "wI3zrb9KhQQYnWuKLNG28sEAr+AJvnJqlfUJBpIJIvA=",
+  "pull": {
+    "balance": {
+      "total": "0",
+      "interval": "0",
+      "available": "100"
+    }
   },
   "contentType": "application/spsp4+json"
 }
@@ -45,28 +50,37 @@ ilp-spsp query -p '$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV
 
 Pull from that endpoint (!!! For this to work, you have to run a version of ilp-spsp that supports pull payments)
 ```sh
-ilp-spsp pull -p '$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ.qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44'
-pulling from "$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ.qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44"...
-pulled 100 units!
+ilp-spsp pull -a 100000 -p '$mysubdomain.localtunnel.me/484f126f-0c22-4052-9c9d-7af70500360a'
+pulling from "$mysubdomain.localtunnel.me/484f126f-0c22-4052-9c9d-7af70500360a"...
+pulled 100000 units!
 ```
 
 Query again
 ```sh
-ilp-spsp query -p '$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ.qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44'
+ilp-spsp query -p '$mysubdomain.localtunnel.me/484f126f-0c22-4052-9c9d-7af70500360a'
 {
-  "destinationAccount": "private.moneyd.local.BWHJ-a8wR_pvtns2kZGPl2mZ9oMnhjgCkg0L38zIs6E.aaB89gkDgV22aG54_b8BVAua~eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9~eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ~qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44",
-  "sharedSecret": "/jIo5GsubZObjhf/41Y+il3+jJXsTrQfWG6EDOc8d80=",
-  "balance": {
-    "interval": "100",
-    "total": "100"
+  "destinationAccount": "private.moneyd.local.BFTRSlyMxz_62Ia7N58b83de5730op6sJKtWfj-58Tg.9gmxwFKKnDehiwxhqGXal0S8~484f126f-0c22-4052-9c9d-7af70500360a",
+  "sharedSecret": "2JUsKSvjjarJENBuI8KqWoyxDHQU2V3XvzsSc2+BtrU=",
+  "pull": {
+    "balance": {
+      "total": "100",
+      "interval": "100",
+      "available": "0"
+    }
   },
   "contentType": "application/spsp4+json"
 }
 ```
 
-### Using an offline token
+### Using an offline-generated pull pointer
 
-A token can also be created offline by generating a JWT containing all the necessary [parameters](####Request) and signing it with the same secret ([SPSP_JWT_SECRET](##Environment-Variables)) used by the server. If the client tries to pull using an offline generated token, the server will try to verify it and if it can, it will allow the pull. 
+A pull pointer can also be created offline by generating a JWT containing all the necessary [parameters](####Request) and signing it with the same secret ([SPSP_JWT_SECRET](##Environment-Variables)) used by the server. If the client tries to pull using an offline generated pull pointer, the server will try to verify it and if it can, it will allow the pull. 
+
+Here is an example of a valid JWT:
+
+```jwt
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJpbnRlcnZhbCI6IlAwWTBNMERUMEgxTSIsImN5Y2xlcyI6IjEwIiwiY2FwIjoiZmFsc2UiLCJhc3NldENvZGUiOiJYUlAiLCJhc3NldFNjYWxlIjoiNiJ9.9-3t5Xps81O_T5kaKBTlvkrjJgvP0V1XW2HR0coIqyE
+```
 
 ### Making a push payment to the SPSP server
 ```sh
@@ -89,13 +103,13 @@ sent!
 
 ## API
 
-### Create a pull payment token
+### Create a pull pointer
 
 ```http
 POST /
 ```
 
-Requires authentication. Creates a pull payment token.
+Requires authentication. Creates a pull pointer.
 
 #### Request
 
@@ -111,21 +125,21 @@ Requires authentication. Creates a pull payment token.
 
 #### Response
 
-- `pointer` - Payment pointer to be pulled from, including the token.
+- `pointer` - Pull pointer.
 
-### Query a pull payment token
+### Query a pull pointer
 
 ```http
 GET /:token
 ```
 Needs the header `Accept:"application/spsp4+json"`.
 
-SPSP endpoint storing the information to set up a STREAM connection for pulling for this particular `:token`. The payment pointer
-returned by [Create a pull payment token](#create-a-pull-payment-token) resolves to this endpoint.
+SPSP endpoint storing the information to set up a STREAM connection for pulling from the unique pull pointer with id `:token`. The pull pointer
+returned by [Create a pull pointer](#create-a-pull-pointer) resolves to this endpoint.
 
 ### Webhooks
 
-When you [Create a pull payment token](#create-a-pull-payment-token) and specify a webhook, it will
+When you [Create a pull pointer](#create-a-pull-pointer) and specify a webhook, it will
 call the specified webhook when the payment has been pulled. The request is a `POST` with
 
 ```http
@@ -134,6 +148,6 @@ Authorization: Bearer <SPSP_AUTH_TOKEN>
 {
   "balanceTotal": "400",
   "balanceInterval": "100",
-  "pointer": "$mysubdomain.localtunnel.me/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAiLCJzdGFydCI6IjIwMTktMDItMTJUMTk6MzM6NDUuMTE1WiIsImludGVydmFsIjoiUDBZME0wRFQwSDFNIiwiY3ljbGVzIjoiMTAiLCJjYXAiOiJmYWxzZSIsImFzc2V0Q29kZSI6IlhSUCIsImFzc2V0U2NhbGUiOiI2IiwiaWF0IjoxNTUwMDAwMDI1fQ.qIf8kxq2DU3L6GcaPZSZJOBOksxEoEmUxWiRkyvmO44"
+  "pointer": "$mysubdomain.localtunnel.me/484f126f-0c22-4052-9c9d-7af70500360a"
 }
 ```
