@@ -3,7 +3,8 @@ const reduct = require('reduct')
 const moment = require('moment')
 const BigNumber = require('bignumber.js')
 const Token = require('../src/lib/token')
-const Exchange = require('../src/lib/exchange')
+const sinon = require('sinon')
+const Exchange = require('ilp-exchange-rate')
 
 var deps
 var token
@@ -11,19 +12,21 @@ var input
 var start
 var expectedOutput
 
-class MockExchange {
-  fetchRate (tokenAssetCode, tokenAssetScale, serverAssetCode, serverAssetScale) {
-    return 2
-  }
+function fetchRate () {
+  return 2
 }
 
 describe('Token', function () {
   beforeEach(function () {
+    sinon.stub(Exchange, 'fetchRate').callsFake(fetchRate)
     deps = reduct()
-    deps.setOverride(Exchange, MockExchange)
     token = deps(Token)
     start = moment(moment() - moment.duration('P0Y0M0DT0H4M30S')).toISOString()
   })
+  afterEach(() => {
+    sinon.restore()
+  });
+  
   describe('.pull()', function () {
     it('should update the balances on pull', function () {
       input = {
