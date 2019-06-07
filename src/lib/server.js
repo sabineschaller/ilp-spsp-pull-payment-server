@@ -1,9 +1,10 @@
 const { createServer } = require('ilp-protocol-stream')
+const Exchange = require('ilp-exchange-rate')
+
 const crypto = require('crypto')
 
 const Config = require('./config')
 const TokenModel = require('../models/token')
-const Exchange = require('./exchange')
 const Webhooks = require('./webhooks')
 const debug = require('debug')('ilp-spsp-pull:server')
 
@@ -11,7 +12,6 @@ class Server {
   constructor (deps) {
     this.config = deps(Config)
     this.tokens = deps(TokenModel)
-    this.exchange = deps(Exchange)
     this.webhooks = deps(Webhooks)
     this.plugin = this.config.plugin
     this.server = null
@@ -53,7 +53,7 @@ class Server {
         const tokenInfo = await this.tokens.get(token)
 
         connection.on('stream', async (stream) => {
-          const exchangeRate = await this.exchange.fetchRate(tokenInfo.assetCode, tokenInfo.assetScale, this.server.serverAssetCode, this.server.serverAssetScale)
+          const exchangeRate = await Exchange.fetchRate(tokenInfo.assetCode, tokenInfo.assetScale, this.server.serverAssetCode, this.server.serverAssetScale)
           if (exchangeRate) {
             const pullable = Math.floor(tokenInfo.balanceAvailable * exchangeRate)
             stream.setSendMax(pullable)

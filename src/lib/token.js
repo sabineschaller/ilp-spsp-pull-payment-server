@@ -1,12 +1,10 @@
 const BigNumber = require('bignumber.js')
 const moment = require('moment')
 
-const Exchange = require('./exchange')
+const Exchange = require('ilp-exchange-rate')
 
 class Token {
-  constructor (deps) {
-    this.exchange = deps(Exchange)
-  }
+  constructor () { }
 
   pull (tokenInfo, amount) {
     tokenInfo.balanceTotal = new BigNumber(tokenInfo.balanceTotal).plus(amount)
@@ -26,7 +24,7 @@ class Token {
 
   async update (tokenInfo, values) {
     if (values.assetCode && values.assetScale) {
-      const exchangeRate = await this.exchange.fetchRate(tokenInfo.assetCode, tokenInfo.assetScale, values.assetCode, values.assetScale)
+      const exchangeRate = await Exchange.fetchRate(tokenInfo.assetCode, tokenInfo.assetScale, values.assetCode, values.assetScale)
       tokenInfo.amount = String(Math.floor(new BigNumber(tokenInfo.amount).multipliedBy(exchangeRate)))
       tokenInfo.balanceTotal = String(Math.floor(new BigNumber(tokenInfo.balanceTotal).multipliedBy(exchangeRate)))
       tokenInfo.balanceInterval = String(Math.floor(new BigNumber(tokenInfo.balanceInterval).multipliedBy(exchangeRate)))
